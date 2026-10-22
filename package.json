@@ -1,1 +1,11 @@
 
+{
+  "name": "invader-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Assistante IA INVADER",
+  "scripts": {
+    "build": "echo Build configuration ready"
+  }
+}
+ 
