@@ -1,1 +1,28 @@
 
+name: Build INVADER APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dependances
+        run: npm install
+
+      - name: Verifier le projet
+        run: |
+          test -f package.json
+          test -f index.html
+          echo "Fichiers du projet trouves"
+
