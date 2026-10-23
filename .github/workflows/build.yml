@@ -34,8 +34,8 @@ jobs:
 
       - name: Installer Capacitor
         run: |
-          npm install @capacitor/core @capacitor/android
-          npm install --save-dev @capacitor/cli
+          npm install @capacitor/core@6 @capacitor/android@6
+          npm install --save-dev @capacitor/cli@6
 
       - name: Configurer INVADER
         run: |
