@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,72 +7,174 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#050b19">
 <title>INVADER AI</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(circle at center,#102b55,#050b19 70%);color:#d9f5ff;font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;padding:22px}
+body{
+ margin:0;min-height:100vh;padding:20px;
+ background:radial-gradient(circle,#102b55,#050b19 75%);
+ color:#d9f5ff;font-family:Arial,sans-serif;
+ display:flex;justify-content:center;align-items:center
+}
 main{text-align:center;width:100%;max-width:430px}
 h1{letter-spacing:8px;color:#59d9ff;text-shadow:0 0 18px #168fff}
 .sub{color:#81a9ca;letter-spacing:3px;font-size:12px}
-.orb{width:190px;height:190px;border:2px solid #35caff;border-radius:50%;margin:38px auto;display:grid;place-items:center;box-shadow:0 0 22px #087fff,inset 0 0 25px #087fff;animation:pulse 3s infinite}
-.orb span{font-size:66px;color:#68e5ff}
-@keyframes pulse{50%{box-shadow:0 0 45px #087fff,inset 0 0 35px #087fff}}
-button{border:1px solid #3bd3ff;border-radius:25px;padding:14px 23px;background:#0b2545;color:#e0faff;font-size:16px;margin:6px}
+.orb{
+ width:170px;height:170px;border:2px solid #35caff;
+ border-radius:50%;margin:30px auto;display:grid;place-items:center;
+ box-shadow:0 0 25px #087fff,inset 0 0 25px #087fff
+}
+.orb span{font-size:65px;color:#68e5ff}
+button{
+ border:1px solid #3bd3ff;border-radius:25px;padding:13px 18px;
+ background:#0b2545;color:#e0faff;font-size:15px;margin:6px;
+ cursor:pointer
+}
 button:active{background:#14628a}
 #status{color:#60dcff;min-height:24px;margin:18px 0}
-#answer{background:#0b1830;border:1px solid #183c60;border-radius:14px;padding:18px;min-height:65px;line-height:1.5;overflow-wrap:anywhere}
+#answer{
+ background:#0b1830;border:1px solid #183c60;border-radius:14px;
+ padding:18px;min-height:65px;line-height:1.5;overflow-wrap:anywhere
+}
 .small{font-size:12px;color:#7697b8;margin-top:22px}
 </style>
 </head>
+
 <body>
 <main>
 <h1>INVADER</h1>
 <div class="sub">PERSONAL AI ASSISTANT</div>
 <div class="orb"><span>◉</span></div>
+
 <div id="status">SYSTÈME PRÊT</div>
-<div id="answer">Bonjour. Je suis INVADER. Appuie sur le micro pour me parler.</div>
-<button onclick="listen()">🎙 Parler</button>
-<button onclick="speak('Je suis INVADER, ton assistante virtuelle.')">🔊 Tester la voix</button>
-<button onclick="command('heure')">🕒 Heure</button>
-<p class="small">INVADER AI · Version 1.0</p>
+<div id="answer">Bonjour ! Je suis INVADER. Appuie sur un bouton pour commencer.</div>
+
+<button id="talk">🎙 Parler</button>
+<button id="voice">🔊 Tester la voix</button>
+<button id="time">🕒 Heure</button>
+<button id="help">❓ Aide</button>
+
+<p class="small">INVADER AI · Version 1.1</p>
 </main>
+
 <script>
-const statusEl=document.getElementById('status');
-const answerEl=document.getElementById('answer');
-function speak(text){
- answerEl.textContent=text;
- if(!('speechSynthesis' in window)){statusEl.textContent='Voix non disponible';return}
- speechSynthesis.cancel();
- const u=new SpeechSynthesisUtterance(text);
- u.lang='fr-FR';
- const voices=speechSynthesis.getVoices();
- const v=voices.find(x=>x.lang.startsWith('fr'));
- if(v)u.voice=v;
- speechSynthesis.speak(u);
-}
-function command(text){
- if(text==='heure'){
-  speak('Il est '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+(function(){
+"use strict";
+
+const statusEl = document.getElementById("status");
+const answerEl = document.getElementById("answer");
+
+function say(text){
+ answerEl.textContent = text;
+
+ if(!("speechSynthesis" in window)){
+  statusEl.textContent = "VOIX NON DISPONIBLE SUR CET APPAREIL";
+  return;
+ }
+
+ try{
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "fr-FR";
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+
+  utterance.onstart = function(){
+   statusEl.textContent = "INVADER PARLE...";
+  };
+  utterance.onend = function(){
+   statusEl.textContent = "SYSTÈME PRÊT";
+  };
+  utterance.onerror = function(){
+   statusEl.textContent = "ERREUR VOCALE : VÉRIFIE LE MOTEUR VOCAL";
+  };
+
+  window.speechSynthesis.speak(utterance);
+ }catch(error){
+  statusEl.textContent = "IMPOSSIBLE DE LANCER LA VOIX";
  }
 }
-function listen(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){statusEl.textContent='Reconnaissance vocale non disponible dans ce navigateur';return}
- const r=new SR();
- r.lang='fr-FR';
- r.onstart=()=>statusEl.textContent='JE T’ÉCOUTE...';
- r.onerror=()=>statusEl.textContent='Micro indisponible. Vérifie les autorisations.';
- r.onresult=e=>{
-  const t=e.results[0][0].transcript.toLowerCase();
-  statusEl.textContent='TU AS DIT : '+t;
-  if(t.includes('heure'))command('heure');
-  else if(t.includes('youtube'))speak('Je vais ouvrir YouTube');
-  else if(t.includes('bonjour'))speak('Bonjour. Comment puis-je t’aider ?');
-  else speak('J’ai entendu : '+t+'. Mon intelligence artificielle sera connectée dans une prochaine étape.');
-  if(t.includes('youtube'))setTimeout(()=>location.href='https://m.youtube.com/',1000);
- };
- r.start();
+
+function showTime(){
+ const now = new Date();
+ const time = now.toLocaleTimeString("fr-FR",{
+  hour:"2-digit",minute:"2-digit"
+ });
+ say("Il est actuellement " + time);
 }
+
+function listen(){
+ const Recognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+ if(!Recognition){
+  statusEl.textContent = "RECONNAISSANCE VOCALE NON DISPONIBLE";
+  answerEl.textContent =
+   "La reconnaissance vocale n'est pas prise en charge ici. Utilise un navigateur compatible et vérifie ta connexion Internet.";
+  return;
+ }
+
+ try{
+  const recognition = new Recognition();
+  recognition.lang = "fr-FR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  statusEl.textContent = "JE T'ÉCOUTE...";
+
+  recognition.onresult = function(event){
+   const words = event.results[0][0].transcript.toLowerCase().trim();
+   statusEl.textContent = "TU AS DIT : " + words;
+
+   if(words.includes("heure")){
+    showTime();
+   }else if(words.includes("bonjour") || words.includes("salut")){
+    say("Bonjour ! Je suis INVADER. Comment puis-je t'aider ?");
+   }else if(words.includes("youtube")){
+    say("Ouverture de YouTube.");
+    setTimeout(function(){
+     window.open("https://m.youtube.com/","_blank");
+    },700);
+   }else if(words.includes("aide")){
+    say("Tu peux me demander l'heure, me dire bonjour ou demander l'ouverture de YouTube.");
+   }else{
+    say("J'ai entendu : " + words +
+     ". Pour le moment, mes réponses sont limitées. Une connexion à une intelligence artificielle sera nécessaire pour répondre à toutes tes questions.");
+   }
+  };
+
+  recognition.onerror = function(event){
+   statusEl.textContent = "ERREUR MICRO : " + event.error;
+   answerEl.textContent =
+    "Vérifie l'autorisation du micro et la connexion Internet, puis réessaie.";
+  };
+
+  recognition.onend = function(){
+   if(statusEl.textContent === "JE T'ÉCOUTE..."){
+    statusEl.textContent = "SYSTÈME PRÊT";
+   }
+  };
+
+  recognition.start();
+ }catch(error){
+  statusEl.textContent = "IMPOSSIBLE DE DÉMARRER LE MICRO";
+ }
+}
+
+document.getElementById("talk").addEventListener("click",listen);
+
+document.getElementById("voice").addEventListener("click",function(){
+ say("Bonjour ! Je suis INVADER. Le test de ma voix fonctionne.");
+});
+
+document.getElementById("time").addEventListener("click",showTime);
+
+document.getElementById("help").addEventListener("click",function(){
+ say("Bonjour ! Appuie sur Parler pour donner une commande, sur Tester la voix pour entendre ma voix, ou sur Heure pour connaître l'heure.");
+});
+
+})();
 </script>
 </body>
 </html>
-
