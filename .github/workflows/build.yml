@@ -1,8 +1,12 @@
 
+
 name: Build INVADER APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -17,12 +21,48 @@ jobs:
         with:
           node-version: 20
 
-      - name: Installer les dependances
-        run: npm install
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: Verifier le projet
+      - name: Preparer les fichiers web
         run: |
-          test -f package.json
-          test -f index.html
-          echo "Fichiers du projet trouves"
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Installer Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/android
+          npm install --save-dev @capacitor/cli
+
+      - name: Configurer INVADER
+        run: |
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.invader.assistant",
+            "appName": "INVADER",
+            "webDir": "www",
+            "bundledWebRuntime": false
+          }
+          EOF
+
+      - name: Creer le projet Android
+        run: npx cap add android
+
+      - name: Synchroniser le projet
+        run: npx cap sync android
+
+      - name: Compiler le APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Recuperer le APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: INVADER-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
